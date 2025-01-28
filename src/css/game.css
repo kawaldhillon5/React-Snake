@@ -7,3 +7,26 @@
     align-items: center;
     justify-content: center;
 }
+
+#canvas-div{
+    display: grid;
+    width: 90%;
+    height: 50%;
+    grid-template-columns: repeat(10, 1fr) ;
+    grid-template-rows: repeat(10, 1fr) ;
+    background-color: aliceblue;
+}
+
+.canvas-box.snake{
+    background-color: rgb(173, 64, 64);
+}
+
+.canvas-box.snake-head{
+    background-color: rgb(255, 24, 24);
+}
+.canvas-box.snake-tail{
+    background-color: rgb(102, 44, 44);
+}
+.canvas-box.fruit{
+    background-color: rgb(220, 241, 35);
+}
