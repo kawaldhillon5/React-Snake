@@ -5,6 +5,8 @@
     border-radius: 15px;
     display: flex;
     align-items: center;
+    flex-direction: column;
+    gap: 20px;
     justify-content: center;
 }
 
@@ -15,6 +17,7 @@
     grid-template-columns: repeat(10, 1fr) ;
     grid-template-rows: repeat(10, 1fr) ;
     background-color: aliceblue;
+    border-radius: 5px;
 }
 
 .canvas-box.snake{
@@ -29,4 +32,9 @@
 }
 .canvas-box.fruit{
     background-color: rgb(220, 241, 35);
+}
+
+.game-info-div{
+    font-size: 150%;
+    font-weight: 600;
 }
