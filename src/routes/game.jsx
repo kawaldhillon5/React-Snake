@@ -2,16 +2,32 @@ import { useState } from 'react'
 import '../css/game.css'
 import { useEffect } from 'react';
 import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+
 
 export default function Game(){
     const [snakeCoordinates, setSnakeCoordinates] = useState([{x:5, y:5},{x:4, y:5},{x:3, y:5}]);
-    const [gameSate, setGameState] = useState(false);
+    const [gameState, setGameState] = useState(false);
+    const [gamePause, setGamePaused] = useState(false);
     const [gameOver, setGameOver] = useState(false);
+    const [highScoreSet, setHighScoreSet] = useState(false);
     const direction =  useRef('right');
-    const boxArray = []
     const fruitCoordinatesRef = useRef({});
     const score = useRef(0);
+    const highScore = useRef(localStorage.getItem('highScore') || 0);
+    const [showPauseDialog, setShowPauseDialog] = useState(false);
+    const [showGameOverDialog, setShowGameOverDialog] = useState(false);
+    const navigate = useNavigate();
 
+    const handleResume = () => {
+        setGamePaused(!gamePause);
+        setShowPauseDialog(false);
+    };
+
+    const handleRestart = () => {
+        navigate(0);
+    };
 
     function renderFruit(snakeCoordinates, boardWidth, boardHeight) {
         const occupiedCoordinates = new Set();
@@ -62,6 +78,11 @@ export default function Game(){
     function detectOutOfBoundry(newC){
         if(!(0 <= newC.x && newC.x <= 9 && 0 <= newC.y && newC.y <= 9)){
             console.log("Went Out of boundry");
+            if (score.current > highScore.current) {
+                highScore.current = score.current;
+                localStorage.setItem('highScore', highScore.current);
+                setHighScoreSet(true); 
+            }
             setGameOver(true);
             return true
         } else return false;
@@ -71,6 +92,11 @@ export default function Game(){
         if(snakeCoordinates.some(
             (coord) => coord.x === newC.x && coord.y === newC.y
           )){
+            if (score.current > highScore.current) {
+                highScore.current = score.current;
+                localStorage.setItem('highScore', highScore.current);
+                setHighScoreSet(true);  
+            }
             setGameOver(true);
             console.log("Ate its Body");
             return true
@@ -171,7 +197,6 @@ export default function Game(){
                 const box = document.createElement('div');
                 box.classList.add('canvas-box');
                 box.setAttribute('id',`box${x}${y}`);
-                boxArray[count] = box;
                 count++;
                 container.appendChild(box);
             }   
@@ -179,27 +204,74 @@ export default function Game(){
 
         //render initial fruit
         renderFruit(snakeCoordinates, 9, 9);
-        
-
     },[]);
     // game loop
     useEffect(()=>{
-        if(gameSate && !gameOver){
+        if(gameState && !gameOver && !gamePause){
             window.addEventListener('keydown', handleKeyDown);
             setTimeout(()=>{
                 runGameLoop()
             },300);
+        } else if(gameState && !gameOver && gamePause){
+            setShowPauseDialog(true)        }
+        else if(gameState && gameOver && !gamePause){
+            setShowGameOverDialog(true);
         }
         
         return () => window.removeEventListener('keydown', handleKeyDown);
-    },[snakeCoordinates, gameSate, gameOver]);
+    },[snakeCoordinates, gameState, gameOver, gamePause]);
 
 
     return (
         <div id='game-main-div'>
-            <div className='game-info-div'>Game Starts in 3</div>
-            <div id='canvas-div'>
+            <div className='game-header'>
+                <div className='game-info-div'>Game Starts in 3</div>
+                <button onClick={()=> setGamePaused(!gamePause)}>{gamePause ? "Resume": "Pause" }</button>
             </div>
+            <div id='canvas-div'></div>
+            <div className='game-controls'>
+                <button className='left-button'  value={'ArrowLeft'}
+                onClick={(e)=>{handleKeyDown({key:e.target.value})}}
+                >⬅</button>
+                <button className='up-button'    value={'ArrowUp'}
+                onClick={(e)=>{handleKeyDown({key:e.target.value})}}
+                >⬆</button>
+                <button className='right-button' value={'ArrowRight'}
+                onClick={(e)=>{handleKeyDown({key:e.target.value})}}
+                >➡</button>
+                <button className='down-button'  value={'ArrowDown'}
+                onClick={(e)=>{handleKeyDown({key:e.target.value})}}
+                >⬇</button>
+            </div>
+            <Dialog 
+                isOpen={showPauseDialog} 
+                title="Game Paused"
+            >
+                <p>Game is currently paused.</p>
+                <button onClick={handleResume}>Resume</button>
+            </Dialog>
+
+            <Dialog 
+                isOpen={showGameOverDialog} 
+                title="Game Over"
+            >
+                {highScoreSet ? <p>Congrulations! You Set a New High Score of {highScore.current}</p> :<p>You Score: {score.current}</p>}
+                <button onClick={handleRestart}>Restart</button>
+            </Dialog>
         </div>
+        
     )
 }
+
+const Dialog = ({ isOpen, onClose, title, children }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div 
+        className='game-dialog'
+      >
+        <h2>{title}</h2>
+        {children}
+      </div>
+    );
+  };
