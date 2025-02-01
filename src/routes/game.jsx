@@ -9,6 +9,7 @@ export default function Game(){
     const [gameOver, setGameOver] = useState(false);
     const direction =  useRef('right');
     const boxArray = []
+    const fruitCoordinatesRef = useRef({});
     const score = useRef(0);
 
 
@@ -25,6 +26,11 @@ export default function Game(){
             y: Math.floor(Math.random() * boardHeight),
           };
         } while (occupiedCoordinates.has(`${fruitCoordinates.x},${fruitCoordinates.y}`));
+        if(fruitCoordinatesRef.current.x || fruitCoordinatesRef.current.x === 0 || fruitCoordinatesRef.current.y === 0){
+            document.querySelector(`#box${fruitCoordinatesRef.current.x}${fruitCoordinatesRef.current.y}`).classList.remove('fruit');
+        }
+        fruitCoordinatesRef.current.x = fruitCoordinates.x;
+        fruitCoordinatesRef.current.y = fruitCoordinates.y;
         document.querySelector(`#box${fruitCoordinates.x}${fruitCoordinates.y}`).classList.add('fruit');
     }
 
@@ -54,10 +60,11 @@ export default function Game(){
     }
 
     function detectOutOfBoundry(newC){
-        if(!((0 >= newC.x <=9)&&(0 >= newC.y <=9))){
-            console.log("Wnt Out of boundry");
-            gameOver(true);
-        }
+        if(!(0 <= newC.x && newC.x <= 9 && 0 <= newC.y && newC.y <= 9)){
+            console.log("Went Out of boundry");
+            setGameOver(true);
+            return true
+        } else return false;
     }
 
     function detectSnakeBody(newC){
@@ -66,43 +73,23 @@ export default function Game(){
           )){
             setGameOver(true);
             console.log("Ate its Body");
+            return true
+        } else{
+            return false
         }
     }
 
-    function runGameLoop(){
-         //render snake
-         setTimeout(() => {
-            document.querySelector(`#box${snakeCoordinates[snakeCoordinates.length-1].x}${snakeCoordinates[snakeCoordinates.length-1].y}`).classList.remove("snake-tail");
-         }, 500);
-         snakeCoordinates.forEach((coordinate ,i, array)=>{
-            switch (i) {
-                case 0:
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake-head");
-                    break;
-                case (array.length -1):
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake");
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake-head");
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake-tail");
-                    break;
-                default:
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake-head");
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake");
-                    break;
-            }
-        });
-        
-        const newC = calcSnakeHeadNext(direction.current);
-        const newSnakeArray = snakeCoordinates.toSpliced(snakeCoordinates.length-1,1);
-        newSnakeArray.unshift(newC);
-        setSnakeCoordinates(newSnakeArray);
-        detectOutOfBoundry(newC);
-        detectSnakeBody(newC);
+    function detectFruit(newC, snakeCoordinates){
+        if((fruitCoordinatesRef.current.x === newC.x)&&(fruitCoordinatesRef.current.y === newC.y)){
+            renderFruit(snakeCoordinates, 9, 9);
+            return true;
+        } else {
+            return false;
+        }
     }
-
 
     function countDown() {
         let count = 2;
-        
         const intervalId = setInterval(() => {
             document.querySelector('.game-info-div').textContent = `Game Starts in ${count}`
             count--;      
@@ -115,6 +102,7 @@ export default function Game(){
     }
 
     const handleKeyDown = (event) => {
+        window.removeEventListener('keydown', handleKeyDown);
         switch (event.key) {
             case 'ArrowRight':
                 if(!(direction.current === 'left')) {direction.current =  'right' };
@@ -132,6 +120,44 @@ export default function Game(){
                 break;
         }
     };
+
+    function runGameLoop(){
+        const newC = calcSnakeHeadNext(direction.current);
+       
+        //render snake
+        snakeCoordinates.forEach((coordinate ,i, array)=>{
+            switch (i) {
+                case 0:
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake-head");
+                    break;
+                case (array.length -1):
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake");
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake-head");
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake-tail");
+                    break;
+                default:
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake-head");
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake");
+                    break;
+            }
+        });
+        if((!detectOutOfBoundry(newC)) && (!detectSnakeBody(newC))){
+            setTimeout(() => {
+                document.querySelector(`#box${snakeCoordinates[snakeCoordinates.length-1].x}${snakeCoordinates[snakeCoordinates.length-1].y}`).classList.remove("snake-tail");
+            }, 300);
+            let newSnakeArray  = [...snakeCoordinates]
+            if(detectFruit(newC, snakeCoordinates)){
+                score.current = score.current + 1;
+                document.querySelector('.game-info-div').textContent = `Score ${score.current}`
+            } else {
+                newSnakeArray = snakeCoordinates.toSpliced(snakeCoordinates.length-1,1);
+            }
+            newSnakeArray.unshift(newC);
+            setSnakeCoordinates(newSnakeArray);
+        }
+    }
+
+    //initial game render
     useEffect(()=>{
       
         //render timer
@@ -153,17 +179,22 @@ export default function Game(){
 
         //render initial fruit
         renderFruit(snakeCoordinates, 9, 9);
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        
 
     },[]);
-
+    // game loop
     useEffect(()=>{
-        if(gameSate && !gameOver){setTimeout(()=>{
-            runGameLoop()
-        },500);}
+        if(gameSate && !gameOver){
+            window.addEventListener('keydown', handleKeyDown);
+            setTimeout(()=>{
+                runGameLoop()
+            },300);
+        }
+        
+        return () => window.removeEventListener('keydown', handleKeyDown);
     },[snakeCoordinates, gameSate, gameOver]);
+
+
     return (
         <div id='game-main-div'>
             <div className='game-info-div'>Game Starts in 3</div>
