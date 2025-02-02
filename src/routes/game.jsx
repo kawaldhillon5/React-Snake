@@ -83,7 +83,6 @@ export default function Game(){
                 localStorage.setItem('highScore', highScore.current);
                 setHighScoreSet(true); 
             }
-            setGameOver(true);
             return true
         } else return false;
     }
@@ -97,7 +96,6 @@ export default function Game(){
                 localStorage.setItem('highScore', highScore.current);
                 setHighScoreSet(true);  
             }
-            setGameOver(true);
             console.log("Ate its Body");
             return true
         } else{
@@ -149,28 +147,8 @@ export default function Game(){
 
     function runGameLoop(){
         const newC = calcSnakeHeadNext(direction.current);
-       
-        //render snake
-        snakeCoordinates.forEach((coordinate ,i, array)=>{
-            switch (i) {
-                case 0:
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake-head");
-                    break;
-                case (array.length -1):
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake");
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake-head");
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake-tail");
-                    break;
-                default:
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake-head");
-                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake");
-                    break;
-            }
-        });
         if((!detectOutOfBoundry(newC)) && (!detectSnakeBody(newC))){
-            setTimeout(() => {
-                document.querySelector(`#box${snakeCoordinates[snakeCoordinates.length-1].x}${snakeCoordinates[snakeCoordinates.length-1].y}`).classList.remove("snake-tail");
-            }, 300);
+            document.querySelector(`#box${snakeCoordinates[snakeCoordinates.length-1].x}${snakeCoordinates[snakeCoordinates.length-1].y}`).classList.remove("snake-tail");
             let newSnakeArray  = [...snakeCoordinates]
             if(detectFruit(newC, snakeCoordinates)){
                 score.current = score.current + 1;
@@ -180,6 +158,9 @@ export default function Game(){
             }
             newSnakeArray.unshift(newC);
             setSnakeCoordinates(newSnakeArray);
+            return true;
+        } else {
+            false
         }
     }
 
@@ -207,15 +188,33 @@ export default function Game(){
     },[]);
     // game loop
     useEffect(()=>{
-        if(gameState && !gameOver && !gamePause){
-            window.addEventListener('keydown', handleKeyDown);
-            setTimeout(()=>{
-                runGameLoop()
-            },300);
+        snakeCoordinates.forEach((coordinate ,i, array)=>{
+            switch (i) {
+                case 0:
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake-head");
+                    break;
+                case (array.length -1):
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake");
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake-head");
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake-tail");
+                    break;
+                default:
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.remove("snake-head");
+                    document.querySelector(`#box${coordinate.x}${coordinate.y}`).classList.add("snake");
+                    break;
+            }
+        });
+        if(gameState && gameOver && !gamePause){
+            setShowGameOverDialog(true);
         } else if(gameState && !gameOver && gamePause){
             setShowPauseDialog(true)        }
-        else if(gameState && gameOver && !gamePause){
-            setShowGameOverDialog(true);
+        else  if(gameState && !gamePause){
+            window.addEventListener('keydown', handleKeyDown);
+              setTimeout(()=>{
+                if(!runGameLoop()){                    
+                    setGameOver(true);
+                }
+            },300);
         }
         
         return () => window.removeEventListener('keydown', handleKeyDown);
