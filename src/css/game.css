@@ -1,85 +1,103 @@
-#game-main-div{
+#game-main-div {
     background-color: rgb(41, 41, 41);
     width: 95%;
     height: 95%;
     border-radius: 15px;
     display: flex;
-    align-items: center;
-    flex-direction: column;
+    flex-direction: column; /* MOBILE-FIRST: stack vertically */
+    align-items: stretch;
     gap: 20px;
     justify-content: center;
-}
-.game-header{
+    margin: 0 auto; /* Center horizontally if needed */
+  }
+  
+  /* When screen is at least 768px, switch to side-by-side layout */
+
+  .game-header {
     width: 90%;
     margin-top: 5%;
-    margin-bottom: 10%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-#canvas-div{
+  }
+  
+  .left-side {
+    flex: 2;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  /* Canvas container */
+  #canvas-div {
     display: grid;
-    width: 90%;
-    height: 50%;
-    grid-template-columns: repeat(10, 1fr) ;
-    grid-template-rows: repeat(10, 1fr) ;
+    width: 98%;
+    flex: 1;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
     background-color: aliceblue;
     border-radius: 5px;
-}
-
-.canvas-box.snake{
+  }
+  
+  .canvas-box.snake {
     background-color: rgb(173, 64, 64);
-}
-
-.canvas-box.snake-head{
+  }
+  
+  .canvas-box.snake-head {
     background-color: rgb(255, 24, 24);
-}
-.canvas-box.snake-tail{
+  }
+  
+  .canvas-box.snake-tail {
     background-color: rgb(102, 44, 44);
-}
-.canvas-box.fruit{
+  }
+  
+  .canvas-box.fruit {
     background-color: rgb(220, 241, 35);
-}
-
-.game-info-div{
+  }
+  
+  .game-info-div {
     font-size: 150%;
     font-weight: 600;
-}
-
-.game-controls{
-    width: 90%;
+  }
+  
+  /* Game controls */
+  .game-controls {
     flex: 1;
+    padding: 20px;
     margin-bottom: 5%;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr;
-    /* justify-items: center;
-    align-items: center; */
     gap: 10%;
-}
-
-.game-controls>button{
+  }
+  
+  /* Control buttons */
+  .game-controls > button {
     padding: 1rem 1.7rem;
     font-size: 200%;
-}
-
-.up-button{
+  }
+  
+  .up-button {
     grid-area: 1/2/2/3;
-}
-
-.left-button{
+  }
+  
+  .left-button {
     grid-area: 2/1/3/2;
-}
-
-.right-button{
+  }
+  
+  .right-button {
     grid-area: 2/3/3/4;
-}
-
-.down-button{
+  }
+  
+  .down-button {
     grid-area: 2/2/3/3;
-}
-
-.game-dialog{
+  }
+  
+  /* Dialog styling */
+  .game-dialog {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -93,9 +111,31 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-}
-
-.game-dialog::backdrop{
+  }
+  
+  .game-dialog::backdrop {
     backdrop-filter: blur(2px);
     opacity: 0.75;
-}
+  }
+  
+  @media (min-width: 768px) {
+    #game-main-div {
+      flex-direction: row; /* DESKTOP: side by side */
+    }
+    .left-side{
+        flex: 1.4 ;
+    }
+    .game-header{
+        margin: 2%;
+    }
+    #canvas-div{
+        height: 90%;
+    }
+    .game-controls{
+        margin-bottom: 0;
+        margin: auto 20px;
+        height: 30%;
+        /* margin: 250px 20px 250px 0px; */
+    }
+  }
+  

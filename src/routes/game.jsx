@@ -19,6 +19,7 @@ export default function Game(){
     const [showPauseDialog, setShowPauseDialog] = useState(false);
     const [showGameOverDialog, setShowGameOverDialog] = useState(false);
     const navigate = useNavigate();
+    const keyActive = useRef(false);
 
     const handleResume = () => {
         setGamePaused(!gamePause);
@@ -127,21 +128,24 @@ export default function Game(){
 
     const handleKeyDown = (event) => {
         window.removeEventListener('keydown', handleKeyDown);
-        switch (event.key) {
-            case 'ArrowRight':
-                if(!(direction.current === 'left')) {direction.current =  'right' };
-                break;
-            case 'ArrowLeft':
-                if(!(direction.current === 'right')) {direction.current = 'left' };
-                break;
-            case 'ArrowUp':
-                if(!(direction.current === 'down')) {direction.current = 'up'};
-                break;
-            case 'ArrowDown':
-                if(!(direction.current === 'up')) { direction.current = 'down' };            
-                break;
-            default:
-                break;
+        if(keyActive.current === true){    
+            keyActive.current = false;
+            switch (event.key) {
+                case 'ArrowRight':
+                    if(!(direction.current === 'left')) {direction.current =  'right' };
+                    break;
+                case 'ArrowLeft':
+                    if(!(direction.current === 'right')) {direction.current = 'left' };
+                    break;
+                case 'ArrowUp':
+                    if(!(direction.current === 'down')) {direction.current = 'up'};
+                    break;
+                case 'ArrowDown':
+                    if(!(direction.current === 'up')) { direction.current = 'down' };            
+                    break;
+                default:
+                    break;
+            }
         }
     };
 
@@ -210,6 +214,7 @@ export default function Game(){
             setShowPauseDialog(true)        }
         else  if(gameState && !gamePause){
             window.addEventListener('keydown', handleKeyDown);
+            keyActive.current = true;
               setTimeout(()=>{
                 if(!runGameLoop()){                    
                     setGameOver(true);
@@ -223,11 +228,13 @@ export default function Game(){
 
     return (
         <div id='game-main-div'>
-            <div className='game-header'>
-                <div className='game-info-div'>Game Starts in 3</div>
-                <button onClick={()=> setGamePaused(!gamePause)}>{gamePause ? "Resume": "Pause" }</button>
+            <div className="left-side">
+                <div className='game-header'>
+                    <div className='game-info-div'>Game Starts in 3</div>
+                    <button onClick={()=> setGamePaused(!gamePause)}>{gamePause ? "Resume": "Pause" }</button>
+                </div>
+                <div id='canvas-div'></div>
             </div>
-            <div id='canvas-div'></div>
             <div className='game-controls'>
                 <button className='left-button'  value={'ArrowLeft'}
                 onClick={(e)=>{handleKeyDown({key:e.target.value})}}
